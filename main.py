@@ -3,7 +3,7 @@ from time import sleep
 import platform
 
 oDownloader = Downloader()
-cls = 'cls' if platform.system() == 'Windows' else 'clear' # will be used to cleat the window
+cls = 'cls' if platform.system() == 'Windows' else 'clear' # will be used to clear the terminal
 
 def quality_menu():
     """ Display a menu of available qualities """
