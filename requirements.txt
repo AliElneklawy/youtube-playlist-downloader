@@ -1,0 +1,6 @@
+pytube==15.0.0
+pyinputplus==1.4.2
+moviepy
+ffmpeg-python
+pafy>=0.5.5
+tkinter
