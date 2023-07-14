@@ -8,6 +8,7 @@ import pyinputplus as pyip
 import moviepy.editor as movie
 from constants import *
 from ffmpeg import concat, input
+import pafy
 
 
 class DowloadErr(Exception):
@@ -46,14 +47,14 @@ class Downloader:
                 title = title.replace(char, "")
         return title
 
-    def __show_info(self, yt, choice, quality="720p"):
+    def __show_info(self, yt, pafy_url, choice, quality="720p"):
         self.quality_int = int(quality.replace("p", ""))
         if choice == 1:
             print(
                 f"""\n
-                Title: {yt.title}
-                Duration: {round(yt.length/60)} minutes
-                Number of views: {yt.views:,} views
+                Title: {pafy_url.title}
+                Duration: {pafy_url.duration}
+                Number of views: {pafy_url.viewcount:,} views
                 Size: {round((yt.streams.get_by_resolution(quality).filesize)/1024/1024, 2) 
                         if self.quality_int == 720 or self.quality_int == 360
                         else round((yt.streams.get_by_itag(itags[quality]).filesize)/1024/1024, 2)} MB
@@ -63,16 +64,16 @@ class Downloader:
             print(
                 f"""\n
                 Number of videos: {yt.length}
-                Total number of views: {yt.views:,}
+                Total number of views: {pafy_url.viewcount:,}
                 Last updated: {yt.last_updated}
                 """
             )
         elif choice == 3:
             print(
                 f"""\n
-                Title: {yt.title}
-                Duration: {round(yt.length/60)} minutes
-                Number of views: {yt.views:,} views
+                Title: {pafy_url.title}
+                Duration: {pafy_url.duration}
+                Number of views: {pafy_url.viewcount:,} views
                 Size: {round((yt.streams.get_by_itag(251).filesize)/1024/1024, 2)} MB
                 """
             )
@@ -154,7 +155,8 @@ class Downloader:
             default = "" for downloading one video
         """
         yt = YouTube(url, on_progress_callback=self.__progress_function)
-        title = self.__check_invalid_title(yt.title)
+        pafy_url = pafy.new(url)
+        title = self.__check_invalid_title(pafy_url.title)
         stream = yt.streams.filter(resolution=quality).first()
         if not stream:
             undownloaded_vids_urls.append([url, i])
@@ -163,8 +165,8 @@ class Downloader:
             )
             return 1
 
-        self.__show_info(yt, 1, quality)
-        title = "" if i == "" else f"{i} " + title
+        self.__show_info(yt, pafy_url, 1, quality)
+        title = title if i == "" else f"{i} " + title
         stream.download(
             output_path=save_path,
             filename=f"{title}.mp4",
@@ -259,7 +261,7 @@ class Downloader:
                 )
                 try:
                     rename(oldname, newname)
-                except (WindowsError, OSError, IOError):
+                except (OSError, IOError):
                     raise DowloadErr(
                         "Could not rename the file. Maybe, the file already exists. Rename it manually."
                     )
