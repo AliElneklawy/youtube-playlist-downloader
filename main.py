@@ -1,8 +1,9 @@
 from oopYPLD import *
 from time import sleep
+import platform
 
 oDownloader = Downloader()
-
+cls = 'cls' if platform.system() == 'Windows' else 'clear' # will be used to cleat the window
 
 def quality_menu():
     """ Display a menu of available qualities """
@@ -21,7 +22,7 @@ while True:
         ],
         numbered=True,
     )
-    system("cls")
+    system(cls)
     try:
         if vid_list == "Video downloader":
             url = pyip.inputStr("Enter the url: ", blank=False)
@@ -66,7 +67,7 @@ while True:
             oDownloader._undownloaded_videos(undownloaded_vids_urls, save_path)
 
         sleep(2)
-        system("cls")
+        system(cls) 
 
     except (DowloadErr, KeyError):
         print("Something went wrong. Maybe the quality you chose isn't available. Please try again")
