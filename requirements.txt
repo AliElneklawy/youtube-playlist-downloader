@@ -4,3 +4,4 @@ moviepy
 ffmpeg-python
 pafy>=0.5.5
 tkinter
+youtube_dl
