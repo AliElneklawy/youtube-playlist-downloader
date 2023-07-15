@@ -47,7 +47,7 @@ class Downloader:
                 title = title.replace(char, "")
         return title
 
-    def __show_info(self, yt, pafy_url, choice, quality="720p"):
+    def __show_info(self, yt, choice, pafy_url=None, quality="720p"):
         self.quality_int = int(quality.replace("p", ""))
         if choice == 1:
             print(
@@ -145,7 +145,7 @@ class Downloader:
             return langs[lang]
         return False
 
-    def Video_downloader(self, url, quality, save_path, i=""):
+    def Video_downloader(self, url, quality, save_path, add_numbering="No", i=""):
         """
         Download videos from youtube
         :param url: URL of the video
@@ -165,8 +165,11 @@ class Downloader:
             )
             return 1
 
-        self.__show_info(yt, pafy_url, 1, quality)
-        title = title if i == "" else f"{i} " + title
+        self.__show_info(yt, 1, pafy_url, quality)
+        #title = title if i == "" else f"{i} " + title
+        if add_numbering == 'Yes':
+        	title = f"{i} " + title
+        	
         stream.download(
             output_path=save_path,
             filename=f"{title}.mp4",
@@ -187,7 +190,7 @@ class Downloader:
         remove(join(save_path, f"{title}.mp4"))
         remove(join(save_path, f"{title}.mp3"))
 
-    def Playlist_downlaoder(self, url, quality, save_path):
+    def Playlist_downlaoder(self, url, quality, save_path, add_numbering):
         """
         Download playlists from youtube
         :param url: URL of the playlist
@@ -200,7 +203,7 @@ class Downloader:
             self.Video_downloader(yt.video_urls[0], quality, save_path, i=1)
             return
 
-        self.__show_info(yt, None, 2)
+        self.__show_info(yt, 2)
 
         higher_range = ""
         lower_range = 1
@@ -221,7 +224,7 @@ class Downloader:
         for i in range(
             lower_range, yt.length + 1 if higher_range == "" else higher_range + 1
         ):
-            self.Video_downloader(yt.video_urls[i - 1], quality, save_path, i)
+            self.Video_downloader(yt.video_urls[i - 1], quality, save_path, add_numbering, i)
 
     def download_captions(self, url, save_path, lang_code):
         """
@@ -275,7 +278,7 @@ class Downloader:
         pafy_url = pafy.new(url)
         yt.streams.filter(only_audio=True).first()
         stream = yt.streams.get_by_itag(251)
-        self.__show_info(yt, pafy_url, 3)
+        self.__show_info(yt, 3, pafy_url)
         print(f"Downloading audio: {pafy_url.title}")
         stream.download(save_path, f"{pafy_url.title}.mp3")
 

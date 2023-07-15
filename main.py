@@ -32,9 +32,12 @@ while True:
 
         elif vid_list == "Playlist downlaoder":
             url = pyip.inputStr("Enter the url: ", blank=False)
+            add_numbering = pyip.inputMenu(['Yes', 'No'],
+                                            'Do you want to add numbers to the videos?\n',
+                                            numbered=True)
             quality = quality_menu()
             save_path = fd.askdirectory(title="Save")
-            oDownloader.Playlist_downlaoder(url, quality, save_path)
+            oDownloader.Playlist_downlaoder(url, quality, save_path, add_numbering)
 
         elif vid_list == "Download captions":
             url = pyip.inputStr("Enter the url: ", blank=False)
@@ -43,7 +46,7 @@ while True:
             oDownloader.download_captions(url, save_path, lang)
 
         elif vid_list == "Extract audio":
-            url = pyip.inputStr("Enter the video url: ")
+            url = pyip.inputStr("Enter the video url: ", blank=False)
             save_path = fd.askdirectory(title="Save")
             oDownloader.extract_audio(url, save_path)
 
