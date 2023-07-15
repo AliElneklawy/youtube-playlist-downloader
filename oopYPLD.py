@@ -64,7 +64,7 @@ class Downloader:
             print(
                 f"""\n
                 Number of videos: {yt.length}
-                Total number of views: {pafy_url.viewcount:,}
+                Total number of views: {yt.views:,}
                 Last updated: {yt.last_updated}
                 """
             )
@@ -200,7 +200,7 @@ class Downloader:
             self.Video_downloader(yt.video_urls[0], quality, save_path, i=1)
             return
 
-        self.__show_info(yt, 2)
+        self.__show_info(yt, None, 2)
 
         higher_range = ""
         lower_range = 1
@@ -272,11 +272,12 @@ class Downloader:
         :param url: the url of the youtube video
         """
         yt = YouTube(url, on_progress_callback=self.__progress_function)
+        pafy_url = pafy.new(url)
         yt.streams.filter(only_audio=True).first()
         stream = yt.streams.get_by_itag(251)
-        self.__show_info(yt, 3)
-        print(f"Downloading audio: {yt.title}")
-        stream.download(save_path, f"{yt.title}.mp3")
+        self.__show_info(yt, pafy_url, 3)
+        print(f"Downloading audio: {pafy_url.title}")
+        stream.download(save_path, f"{pafy_url.title}.mp3")
 
     def converter(self, file_path, file_name):
         """convert mp4 or mkv to mp3"""
