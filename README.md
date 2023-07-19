@@ -1,7 +1,7 @@
 # Youtube Playlist Downloader
  
 An application to download videos, playlists with resolution up to 4k, audio and captions from youtube. 
-You can also use it to convert video files to audio files.
+You can also use it to convert video files to audio files. The app runs on both linux and windows.
 
 # How to Use
 - Clone the repo
