@@ -14,6 +14,9 @@ import pafy
 class DowloadErr(Exception):
     pass
 
+class CaptionDowloadErr(Exception):
+    pass
+
 
 class Downloader:
     """
@@ -44,7 +47,7 @@ class Downloader:
     def __check_invalid_title(self, title):
         for char in title:
             if char in punctuation:
-                title = title.replace(char, "")
+                title = title.replace(char, " ")
         return title
 
     def __show_info(self, yt, choice, pafy_url=None, quality="720p"):
@@ -74,7 +77,7 @@ class Downloader:
                 Title: {pafy_url.title}
                 Duration: {pafy_url.duration}
                 Number of views: {pafy_url.viewcount:,} views
-                Size: {round((yt.streams.get_by_itag(251).filesize)/1024/1024, 2)} MB
+                Size: {round((pafy_url.getbestaudio().get_filesize())/1024/1024, 2)} MB
                 """
             )
 
@@ -170,10 +173,8 @@ class Downloader:
         if add_numbering == 'Yes':
         	title = f"{i} " + title
         	
-        stream.download(
-            output_path=save_path,
-            filename=f"{title}.mp4",
-        )
+        stream.download(output_path=save_path, 
+                        filename=f"{title}.mp4")
 
         if self.quality_int > 720 or self.quality_int == 480:
             self.__download_1080p_or_higher(yt, title, save_path)
@@ -233,10 +234,12 @@ class Downloader:
         :param save_path: the file path to save the file
         """
         yt = YouTube(url)
+
         try:
             caption = yt.captions[lang_code]
         except KeyError:
-            raise DowloadErr("Couldn't download subtitle. Maybe it's auto-generated")
+            raise CaptionDowloadErr
+        
         caption.generate_srt_captions()
         caption.download(title=yt.title, output_path=save_path)
         oldname = save_path + "/" + yt.title + " (" + lang_code + ")" + ".srt"
@@ -276,11 +279,14 @@ class Downloader:
         """
         yt = YouTube(url, on_progress_callback=self.__progress_function)
         pafy_url = pafy.new(url)
-        yt.streams.filter(only_audio=True).first()
-        stream = yt.streams.get_by_itag(251)
-        self.__show_info(yt, 3, pafy_url)
-        print(f"Downloading audio: {pafy_url.title}")
-        stream.download(save_path, f"{pafy_url.title}.mp3")
+        self.__show_info(None, 3, pafy_url)
+        try:
+            stream = yt.streams.get_audio_only()
+            stream.download(save_path, f"{pafy_url.title}.mp3")
+        except:
+            best_quality_audio = pafy_url.getbestaudio()
+            best_quality_audio.download(save_path)
+        
 
     def converter(self, file_path, file_name):
         """convert mp4 or mkv to mp3"""
