@@ -1,0 +1,7 @@
+pytube
+pyinputplus
+moviepy
+ffmpeg-python
+pafy>=0.5.5
+tk
+youtube_dl
