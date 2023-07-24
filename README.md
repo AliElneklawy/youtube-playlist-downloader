@@ -10,4 +10,4 @@ You can also use it to convert video files to audio files. The app runs on both 
 - Install the requirements in requirements_*.txt using `pip install -r requirements_ubuntu.txt` or `pip install -r requirements_windows.txt`
 - Run `main.py` via `python main.py`
 
-**Note**: if you encounter any problem, please open an issue :)
+**Note**: if you encounter any problems, please open an issue :)
