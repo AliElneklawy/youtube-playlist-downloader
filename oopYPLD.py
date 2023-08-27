@@ -9,7 +9,9 @@ import moviepy.editor as movie
 from constants import *
 from ffmpeg import concat, input
 import pafy
-
+pafy.backend = "yt_dlp"
+import time
+import urllib.error
 
 class DowloadErr(Exception):
     pass
@@ -173,11 +175,28 @@ class Downloader:
         if add_numbering == 'Yes':
         	title = f"{i} " + title
         	
-        stream.download(output_path=save_path, 
-                        filename=f"{title}.mp4")
+        #stream.download(output_path=save_path, 
+         #               filename=f"{title}.mp4")
 
-        if self.quality_int > 720 or self.quality_int == 480:
-            self.__download_1080p_or_higher(yt, title, save_path)
+        max_retries = 3
+        delay = 5
+        for _ in range(max_retries):
+            try:
+                stream.download(output_path=save_path, 
+                        filename=f"{title}.mp4")
+                
+                if self.quality_int > 720 or self.quality_int == 480:
+                    self.__download_1080p_or_higher(yt, title, save_path)
+                break
+            except urllib.error.URLError as e:
+                print(f"Connection failed: {e}")
+                time.sleep(delay)
+                delay *= 2
+        else:
+            print(f"Failed to establish a connection after {max_retries} attempts.")
+    
+        #if self.quality_int > 720 or self.quality_int == 480:
+         #   self.__download_1080p_or_higher(yt, title, save_path)
 
         return 2
 
@@ -280,12 +299,28 @@ class Downloader:
         yt = YouTube(url, on_progress_callback=self.__progress_function)
         pafy_url = pafy.new(url)
         self.__show_info(None, 3, pafy_url)
-        try:
-            stream = yt.streams.get_audio_only()
-            stream.download(save_path, f"{pafy_url.title}.mp3")
-        except:
+        
+        max_retries = 5
+        delay = 5
+        for _ in range(max_retries):
+            try:
+                stream = yt.streams.get_audio_only()
+                stream.download(save_path, f"{pafy_url.title}.mp3")
+                break
+            except:
+                print(f"Connection failed. Retrying in {delay} seconds.")
+                time.sleep(delay)
+                delay *= 1.5
+        else:
             best_quality_audio = pafy_url.getbestaudio()
             best_quality_audio.download(save_path)
+            
+        # try:
+            # stream = yt.streams.get_audio_only()
+            # stream.download(save_path, f"{pafy_url.title}.mp3")
+        #except:
+            # best_quality_audio = pafy_url.getbestaudio()
+            # best_quality_audio.download(save_path)
         
 
     def converter(self, file_path, file_name):

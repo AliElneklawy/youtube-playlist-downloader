@@ -72,7 +72,7 @@ while True:
         sleep(2)
         system(cls) 
 
-    except (DowloadErr, KeyError):
-        print("Something went wrong. Maybe the quality you chose isn't available. Please try again")
+    #except (DowloadErr, KeyError):
+    #    print("Something went wrong. Maybe the quality you chose isn't available. Please try again")
     except(CaptionDowloadErr):
         print("No subtitles available")
