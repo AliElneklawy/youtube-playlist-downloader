@@ -4,10 +4,10 @@ An application to download videos, playlists with resolution up to 4k, audio and
 You can also use it to convert video files to audio files. The app runs on both linux and windows.
 
 # How to Use
-- First, download and install ffmpeg: [Download FFmpeg](https://ffmpeg.org/download.html)
+- Download and install ffmpeg: [Download FFmpeg](https://ffmpeg.org/download.html)
 - Clone the repo
 - Navigate to the directory of the repo on your local machine
-- Install ffmpeg (via `sudo apt install ffmpeg` if you're a linux user)
+- Install ffmpeg python (via `sudo apt install ffmpeg` if you're a linux user)
 - Install the requirements in requirements_*.txt using `pip install -r requirements_ubuntu.txt` or `pip install -r requirements_windows.txt`
 - Run `main.py` via `python main.py`
 
