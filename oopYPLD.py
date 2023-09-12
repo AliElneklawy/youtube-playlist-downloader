@@ -12,6 +12,10 @@ import pafy
 pafy.backend = "yt_dlp"
 import time
 import urllib.error
+import yt_dlp
+from functools import partial
+import re
+
 
 class DowloadErr(Exception):
     pass
@@ -83,20 +87,30 @@ class Downloader:
                 """
             )
 
-    def __progress_function(self, chunk, file_handling, bytes_remaining):
-        """
-        method to show the progress of the download
-        """
+    def __progress_function(self, chunk=None, file_handling=None, bytes_remaining=None, dlp=None):
         global filesize
-        filesize = chunk.filesize
-        current = (filesize - bytes_remaining) / filesize
-        percent = ("{0:.1f}").format(current * 100)
-        progress = int(50 * current)
-        status = "█" * progress + "-" * (50 - progress)
-        if bytes_remaining == 0:
-            status = "\033[92m" + status + "\033[0m"
-        sys.stdout.write(" ↳ |{bar}| {percent}%\r".format(bar=status, percent=percent))
-        sys.stdout.flush()
+        if dlp is None:
+            filesize = chunk.filesize
+            current = (filesize - bytes_remaining) / filesize
+            percent = ("{0:.1f}").format(current * 100)
+            progress = int(50 * current)
+            status = "█" * progress + "-" * (50 - progress)
+            if bytes_remaining == 0:
+                status = "\033[92m" + status + "\033[0m"
+            sys.stdout.write(" ↳ |{bar}| {percent}%\r".format(bar=status, percent=percent))
+            sys.stdout.flush()
+        else:
+            status = ""
+            if dlp['status'] == 'downloading':
+                p = dlp['_percent_str']
+                percent = float(re.sub(r'\x1b\[.*?m', '', dlp['_percent_str']).replace('%', '').strip())
+                progress = int(50 * percent / 100)
+                status = "█" * progress + "-" * (50 - progress)
+                sys.stdout.write(f" ↳ |{status}| {p}\r")
+                sys.stdout.flush()
+            elif dlp['status'] == 'finished':
+                status = "\033[92m" + status + "\033[0m"
+
 
     def _undownloaded_videos(self, undownloaded_vids_urls, file_path):
         """
@@ -171,22 +185,20 @@ class Downloader:
             return 1
 
         self.__show_info(yt, 1, pafy_url, quality)
-        #title = title if i == "" else f"{i} " + title
+
         if add_numbering == 'Yes':
         	title = f"{i} " + title
-        	
-        #stream.download(output_path=save_path, 
-         #               filename=f"{title}.mp4")
 
-        max_retries = 3
-        delay = 5
+        max_retries, delay = 3, 5
+        quality_int = self.quality_int
         for _ in range(max_retries):
             try:
+                if quality_int > 720 or quality_int == 480:
+                    self.__download_480_1080p_or_higher(yt, title, save_path, url, stream, quality_int)
+                    break
+
                 stream.download(output_path=save_path, 
                         filename=f"{title}.mp4")
-                
-                if self.quality_int > 720 or self.quality_int == 480:
-                    self.__download_1080p_or_higher(yt, title, save_path)
                 break
             except urllib.error.URLError as e:
                 print(f"Connection failed: {e}")
@@ -194,21 +206,39 @@ class Downloader:
                 delay *= 2
         else:
             print(f"Failed to establish a connection after {max_retries} attempts.")
-    
-        #if self.quality_int > 720 or self.quality_int == 480:
-         #   self.__download_1080p_or_higher(yt, title, save_path)
 
         return 2
 
-    def __download_1080p_or_higher(self, yt, title, save_path):
-        yt.streams.filter(only_audio=True).first().download(save_path, f"{title}.mp3")
-        video_file = input(join(save_path, f"{title}.mp4"))
-        audio_file = input(join(save_path, f"{title}.mp3"))
-        concat(video_file, audio_file, v=1, a=1).output(
-            join(save_path, f"{title} .mp4")
-        ).run()
-        remove(join(save_path, f"{title}.mp4"))
-        remove(join(save_path, f"{title}.mp3"))
+    def __download_480_1080p_or_higher(self, yt, title, save_path, url, stream, quality_int=480):
+        try:
+            if quality_int == 480: format = 135
+            elif quality_int == 1080: format = 399
+            elif quality_int == 1440: format = 400
+            elif quality_int == 2160: format = 401
+
+            ydl_opts = {
+                'format': f'{format}+bestaudio/best',
+                'progress_hooks': [lambda d: self.__progress_function(dlp=d)],
+                'outtmpl': f'{save_path}/%(title)s.%(ext)s',
+            }
+
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.download(url)
+            
+            return
+        except Exception as e:
+            print()
+            print(str(e))
+            stream.download(output_path=save_path, 
+                        filename=f"{title}.mp4")
+            yt.streams.filter(only_audio=True).first().download(save_path, f"{title}.mp3")
+            video_file = input(join(save_path, f"{title}.mp4"))
+            audio_file = input(join(save_path, f"{title}.mp3"))
+            concat(video_file, audio_file, v=1, a=1).output(
+                join(save_path, f"{title} .mp4")
+            ).run()
+            remove(join(save_path, f"{title}.mp4"))
+            remove(join(save_path, f"{title}.mp3"))
 
     def Playlist_downlaoder(self, url, quality, save_path, add_numbering):
         """
