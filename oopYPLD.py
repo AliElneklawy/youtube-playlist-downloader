@@ -13,7 +13,6 @@ pafy.backend = "yt_dlp"
 import time
 import urllib.error
 import yt_dlp
-from functools import partial
 import re
 
 
